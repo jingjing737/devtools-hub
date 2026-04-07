@@ -1,0 +1,35 @@
+__pycache__/
+*.pyc
+.env
+.venv/
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.mypy_cache/
+.DS_Store
+*.log
+COMPOSEEOF
+
+echo "✅ .gitignore created"
+
+# 更新 app.py 加入 health_bp
+python3 -c "
+import re
+with open('dashboard/app.py', 'r') as f:
+    content = f.read()
+if 'health_bp' not in content:
+    content = content.replace(
+        'from dashboard.api import api_bp',
+        'from dashboard.api import api_bp\nfrom dashboard.health_api import health_bp'
+    )
+    content = content.replace(
+        \"app.register_blueprint(api_bp, url_prefix='/api')\",
+        \"app.register_blueprint(api_bp, url_prefix='/api')\napp.register_blueprint(health_bp)\"
+    )
+    with open('dashboard/app.py', 'w') as f:
+        f.write(content)
+    print('✅ app.py updated with health_bp')
+else:
+    print('ℹ️ health_bp already registered')
+"
