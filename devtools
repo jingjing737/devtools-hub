@@ -1,0 +1,84 @@
+#!/bin/bash
+
+PORT=${PORT:-5001}
+URL="http://localhost:$PORT"
+
+# 无参数时显示帮助
+if [ -z "$1" ]; then
+    echo ""
+    echo "🔧 DevTools Hub - 开发者工具集"
+    echo ""
+    echo "用法: devtools <命令>"
+    echo ""
+    echo "命令:"
+    echo "  start    启动服务"
+    echo "  stop     停止服务"
+    echo "  status   系统状态"
+    echo "  cpu      CPU 信息"
+    echo "  mem      内存信息"
+    echo "  disk     磁盘信息"
+    echo "  net      网络速度"
+    echo "  top      高占用进程"
+    echo "  kill     杀死进程 (kill <pid>)"
+    echo "  bench    性能测试"
+    echo "  health   健康检查"
+    echo ""
+    exit 0
+fi
+
+# 检查服务
+check() {
+    curl -s "$URL/api/health" > /dev/null 2>&1
+}
+
+case "$1" in
+    start)
+        echo "🚀 启动服务..."
+        nohup python3 dashboard/app.py > /tmp/devtools.log 2>&1 &
+        sleep 2
+        echo "✅ 已启动: $URL"
+        ;;
+    stop)
+        pkill -f "dashboard/app.py"
+        echo "✅ 已停止"
+        ;;
+    status)
+        check && curl -s "$URL/api/health" | python3 -m json.tool || echo "❌ 服务未运行，请先 devtools start"
+        ;;
+    cpu)
+        check && curl -s "$URL/api/system" | python3 -c "import sys,json;d=json.load(sys.stdin);print(f'CPU: {d.get(\"cpu_percent\",\"?\")}%')" || echo "❌ 服务未运行"
+        ;;
+    mem)
+        check && curl -s "$URL/api/system" | python3 -c "import sys,json;d=json.load(sys.stdin);print(f'内存: {d.get(\"memory_percent\",\"?\")}%')" || echo "❌ 服务未运行"
+        ;;
+    disk)
+        check && curl -s "$URL/api/disk/usage" | python3 -m json.tool || echo "❌ 服务未运行"
+        ;;
+    net)
+        check && curl -s "$URL/api/network/bandwidth" | python3 -c "import sys,json;d=json.load(sys.stdin);print(f'↑{d.get(\"upload_mbps\",0)} Mbps  ↓{d.get(\"download_mbps\",0)} Mbps')" || echo "❌ 服务未运行"
+        ;;
+    top)
+        check && curl -s "$URL/api/processes/top" | python3 -c "
+import sys,json
+d=json.load(sys.stdin)
+print('🔥 CPU:')
+for p in d.get('by_cpu',[])[:5]:print(f'  {p[\"name\"]}: {p[\"cpu\"]}%')
+print('💾 内存:')
+for p in d.get('by_memory',[])[:5]:print(f'  {p[\"name\"]}: {p[\"memory\"]}%')
+" || echo "❌ 服务未运行"
+        ;;
+    kill)
+        [ -z "$2" ] && echo "用法: devtools kill <pid>" && exit
+        curl -s -X POST "$URL/api/processes/$2/kill" && echo "✅ 已杀死 $2" || echo "❌ 失败"
+        ;;
+    bench)
+        check && curl -s "$URL/api/benchmark/full" | python3 -m json.tool || echo "❌ 服务未运行"
+        ;;
+    health)
+        check && curl -s "$URL/api/health" | python3 -m json.tool || echo "❌ 服务未运行"
+        ;;
+    *)
+        echo "❌ 未知命令: $1"
+        echo "运行 devtools 查看帮助"
+        ;;
+esac
