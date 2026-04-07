@@ -165,10 +165,24 @@ MIT
 
 | Version | Date | Changes |
 |---------|------|---------|
+| v2.3.0 | 2026-04-07 | Disk monitor, log analyzer, K8s support |
+| v2.2.0 | 2026-04-07 | Process monitor, network monitor, AI integration |
+| v2.1.0 | 2026-04-07 | Health check API, Docker support |
 | v2.0.0 | 2026-04-07 | AI integration, enhanced dashboard, API endpoints |
 | v1.0.0 | 2026-04-07 | Initial release |
 
 ### Changelog
+
+#### v2.3.0 (2026-04-07)
+- ✨ Disk monitoring API (usage, I/O, large files)
+- ✨ Log analyzer API (errors, kernel, crashes)
+- ✨ Kubernetes integration docs
+- ✨ Multiple installation methods
+
+#### v2.2.0 (2026-04-07)
+- ✨ Advanced process monitoring
+- ✨ Network bandwidth monitoring
+- ✨ AI integration examples
 
 #### v2.0.0 (2026-04-07)
 - ✨ OpenAI GPT-4 integration
@@ -403,3 +417,58 @@ response = requests.post(
 
 **Version**: v2.2.0
 **Last Updated**: 2026-04-07 14:46 GMT+8
+
+## 💾 Disk Monitor API
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| /api/disk/usage | GET | Disk usage per partition |
+| /api/disk/io | GET | Disk I/O statistics |
+| /api/disk/largest-files | GET | Find large files |
+| /api/disk/temp | GET | Temp directory sizes |
+
+## 📋 Log Analyzer API
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| /api/logs/errors | GET | Recent system errors |
+| /api/logs/kernel | GET | Kernel messages |
+| /api/logs/apps | GET | App crash logs |
+
+## 🐳 Kubernetes Integration (Coming Soon)
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: devtools-hub
+spec:
+  containers:
+  - name: devtools
+    image: ghcr.io/jingjing737/devtools-hub
+    ports:
+    - containerPort: 5001
+```
+
+## 📦 Installation Methods
+
+### npm
+```bash
+npm install -g devtools-hub
+devtools-hub
+```
+
+### pip
+```bash
+pip install devtools-hub
+devtools-hub --port 5001
+```
+
+### Docker
+```bash
+docker pull ghcr.io/jingjing737/devtools-hub:latest
+docker run -d -p 5001:5001 \
+  -v /proc:/host/proc:ro \
+  ghcr.io/jingjing737/devtools-hub:latest
+```
+
+---
+
+**📌 Version: v2.3.0 | 📅 Updated: 2026-04-07 14:51 GMT+8**
