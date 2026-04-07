@@ -1,0 +1,19 @@
+# DevTools Hub
+
+> All-in-one developer toolkit
+
+## Install
+
+```bash
+pip install -r requirements.txt
+```
+
+## Run
+
+```bash
+python dashboard/app.py
+```
+
+## License
+
+MIT
