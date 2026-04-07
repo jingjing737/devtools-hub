@@ -165,6 +165,7 @@ MIT
 
 | Version | Date | Changes |
 |---------|------|---------|
+| v2.5.0 | 2026-04-07 | CLI 命令行工具，简洁指令 |
 | v2.4.0 | 2026-04-07 | Benchmark API, task scheduler, WebSocket, CI/CD |
 | v2.3.0 | 2026-04-07 | Disk monitor, log analyzer, K8s support |
 | v2.2.0 | 2026-04-07 | Process monitor, network monitor, AI integration |
@@ -543,3 +544,78 @@ check_system:
 ---
 
 **📌 Version: v2.4.0 | 📅 Updated: 2026-04-07 14:57 GMT+8**
+
+---
+
+## ⌨️ 命令行使用 (推荐)
+
+### 安装
+```bash
+# 克隆仓库
+git clone https://github.com/jingjing737/devtools-hub.git
+cd devtools-hub
+
+# 添加到 PATH (可选)
+ln -s $(pwd)/devtools /usr/local/bin/devtools
+```
+
+### 命令一览
+```
+devtools start     # 启动服务
+devtools stop      # 停止服务
+devtools status    # 系统状态
+devtools cpu       # CPU 信息
+devtools mem       # 内存信息
+devtools disk      # 磁盘信息
+devtools net       # 网络速度
+devtools top       # 高占用进程
+devtools ps        # 进程列表
+devtools kill <pid>  # 杀死进程
+devtools bench     # 性能测试
+devtools health    # 健康检查
+devtools logs      # 系统日志
+devtools help      # 显示帮助
+```
+
+### 快速示例
+```bash
+# 启动
+$ devtools start
+🚀 启动 DevTools Hub...
+✅ 服务已启动: http://localhost:5001
+
+# 查看状态
+$ devtools status
+{
+  "status": "healthy",
+  "system": {"platform": "Darwin", "uptime": "5d 12h"},
+  "memory": {"percent": 61.2}
+}
+
+# 查看高占用进程
+$ devtools top
+🔥 CPU 占用最高:
+  [1234] python: 45.2%
+  [5678] chrome: 28.1%
+
+💾 内存占用最高:
+  [5678] chrome: 35.2%
+  [1234] python: 12.3%
+
+# 查看网速
+$ devtools net
+↑ 上传: 12.5 Mbps  ↓ 下载: 85.3 Mbps
+
+# 性能测试
+$ devtools bench
+{
+  "cpu": {"cpu_score": 245.3},
+  "memory": {"memory_score": 189.2},
+  "disk": {"disk_score": 312.8},
+  "total_score": 747.3
+}
+```
+
+---
+
+**📌 Version: v2.5.0 | 📅 Updated: 2026-04-07 15:27 GMT+8**
