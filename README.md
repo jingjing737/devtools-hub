@@ -7,18 +7,18 @@
 
 ## 📦 Installation | 安装
 
+### Homebrew (macOS)
+```bash
+brew tap jingjing737/tap
+brew install devtools-hub
+```
+
+### pip
 ```bash
 pip install devtools-hub
 ```
 
-Or from source:
-```bash
-git clone https://github.com/jingjing737/devtools-hub.git
-cd devtools-hub
-pip install -e .
-```
-
-或从源码安装：
+### 从源码安装
 ```bash
 git clone https://github.com/jingjing737/devtools-hub.git
 cd devtools-hub
@@ -162,5 +162,6 @@ MIT License
 ---
 
 **GitHub**: https://github.com/jingjing737/devtools-hub  
+**Homebrew**: https://github.com/jingjing737/homebrew-tap  
 **PyPI**: https://pypi.org/project/devtools-hub/  
 **Version**: v2.6.0
