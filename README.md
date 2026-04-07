@@ -308,3 +308,98 @@ devtools-hub/
 ---
 
 **Last Updated**: 2026-04-07 14:41 GMT+8
+
+## 🔍 Advanced Monitoring APIs
+
+### Process Monitor
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| /api/processes/tree | GET | Full process tree |
+| /api/processes/top | GET | Top CPU/memory processes |
+| /api/processes/anomalies | GET | Detect anomalies |
+| /api/processes/:pid/info | GET | Detailed process info |
+| /api/processes/:pid/kill | POST | Kill process |
+| /api/processes/by-name/:name | GET | Find by name |
+
+### Network Monitor
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| /api/network/bandwidth | GET | Real-time bandwidth |
+| /api/network/interfaces | GET | Network interfaces |
+| /api/network/connections | GET | Active connections |
+| /api/network/stats | GET | Network statistics |
+
+### Example: Bandwidth Response
+```json
+{
+  "upload_mbps": 12.5,
+  "download_mbps": 85.3,
+  "upload_bps": 1562500,
+  "download_bps": 10662500
+}
+```
+
+### Example: Top Processes
+```json
+{
+  "by_cpu": [
+    {"pid": 1234, "name": "python", "cpu": 45.2, "memory": 12.3}
+  ],
+  "by_memory": [
+    {"pid": 5678, "name": "chrome", "cpu": 5.1, "memory": 28.7}
+  ],
+  "total": 245
+}
+```
+
+## 🔌 AI Integration
+
+### OpenAI
+```python
+import openai
+response = openai.ChatCompletion.create(
+    model="gpt-4",
+    messages=[{"role": "user", "content": "Analyze this process"}]
+)
+```
+
+### Claude
+```python
+import anthropic
+client = anthropic.Anthropic()
+response = client.messages.create(
+    model="claude-3-5-sonnet",
+    max_tokens=1024,
+    messages=[{"role": "user", "content": "Analyze system"}]
+)
+```
+
+### Ollama (Local)
+```python
+import requests
+response = requests.post(
+    "http://localhost:11434/api/generate",
+    json={"model": "llama3", "prompt": "Analyze processes"}
+)
+```
+
+## 📊 Dashboard Preview
+
+```
+┌─────────────────────────────────────────────────┐
+│  DevTools Hub v2.2.0                            │
+├─────────────────────────────────────────────────┤
+│  CPU: ████████░░ 78%    │  Memory: ██████░░░░ 62% │
+│  Disk: ███░░░░░░░ 35%   │  Network: ↓85 ↑12 Mbps │
+├─────────────────────────────────────────────────┤
+│  Top Processes:                                 │
+│  • python (45%) - AI inference                  │
+│  • chrome (28%) - Browser                       │
+│  • docker (12%) - Containers                    │
+└─────────────────────────────────────────────────┘
+```
+
+---
+
+**Version**: v2.2.0
+**Last Updated**: 2026-04-07 14:46 GMT+8
