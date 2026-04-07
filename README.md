@@ -160,3 +160,65 @@ PRs welcome! See CONTRIBUTING.md
 ## License
 
 MIT
+
+## 📦 Releases
+
+| Version | Date | Changes |
+|---------|------|---------|
+| v2.0.0 | 2026-04-07 | AI integration, enhanced dashboard, API endpoints |
+| v1.0.0 | 2026-04-07 | Initial release |
+
+### Changelog
+
+#### v2.0.0 (2026-04-07)
+- ✨ OpenAI GPT-4 integration
+- ✨ Claude 3 integration
+- ✨ Local LLM support (Ollama)
+- ✨ Real-time system monitoring
+- ✨ Process management with AI insights
+- ✨ Docker support
+- 📝 Full REST API
+
+#### v1.0.0 (2026-04-07)
+- 🎉 Initial release
+- ✨ Basic system monitoring
+- ✨ Process management
+
+## 📦 Packages
+
+### pip
+```bash
+pip install devtools-hub
+```
+
+### Docker
+```bash
+docker pull ghcr.io/jingjing737/devtools-hub:latest
+docker run -p 5001:5001 ghcr.io/jingjing737/devtools-hub
+```
+
+### From Source
+```bash
+git clone https://github.com/jingjing737/devtools-hub.git
+cd devtools-hub
+pip install -r requirements.txt
+python dashboard/app.py
+```
+
+### Quick Start
+```bash
+# Install
+pip install devtools-hub
+
+# Run
+devtools-hub --port 5001
+
+# Open
+open http://localhost:5001
+```
+
+## 🔄 Auto-Update
+
+This repository is automatically updated hourly.
+
+Last update: 2026-04-07 14:38 GMT+8
