@@ -222,3 +222,89 @@ open http://localhost:5001
 This repository is automatically updated hourly.
 
 Last update: 2026-04-07 14:38 GMT+8
+
+## 🏥 Health Check API
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| /api/health | GET | Full system health |
+| /api/health/cpu-history | GET | CPU usage samples |
+| /api/health/services | GET | Service status check |
+| /api/health/battery | GET | Battery info |
+
+### Example Response
+
+```json
+{
+  "status": "healthy",
+  "system": {
+    "platform": "Darwin",
+    "uptime": "5d 12h",
+    "cpu_cores_logical": 8
+  },
+  "memory": {
+    "total_gb": 16.0,
+    "available_gb": 6.2,
+    "percent": 61.2
+  },
+  "disk": {
+    "write_speed_mbps": 245.3,
+    "read_speed_mbps": 312.8
+  }
+}
+```
+
+## 🐳 Docker Commands
+
+```bash
+# Build
+docker build -t devtools-hub .
+
+# Run
+docker run -d -p 5001:5001 --name devtools devtools-hub
+
+# Compose
+docker-compose up -d
+
+# Logs
+docker logs -f devtools
+
+# Stop
+docker-compose down
+```
+
+## 🧪 Testing
+
+```bash
+# Run tests
+python test_api.py
+
+# Health check
+curl http://localhost:5001/api/health
+
+# CPU history
+curl http://localhost:5001/api/health/cpu-history
+
+# Service status
+curl http://localhost:5001/api/health/services
+```
+
+## 📁 Project Structure
+
+```
+devtools-hub/
+├── dashboard/
+│   ├── app.py           # Main Flask app
+│   ├── api.py           # System API
+│   ├── health_api.py    # Health check API
+│   └── templates/
+│       └── index.html   # Dashboard UI
+├── Dockerfile
+├── docker-compose.yml
+├── requirements.txt
+└── README.md
+```
+
+---
+
+**Last Updated**: 2026-04-07 14:41 GMT+8
