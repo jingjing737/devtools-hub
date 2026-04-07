@@ -1,0 +1,11 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build-backend"
+
+[project]
+name = "devtools-hub"
+version = "2.5.0"
+dependencies = ["flask", "psutil", "requests"]
+
+[project.scripts]
+devtools = "devtools_hub.cli:main"
