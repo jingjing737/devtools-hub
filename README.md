@@ -1,140 +1,162 @@
-# DevTools Hub 🚀
+# DevTools Hub 🔧
 
-> All-in-one developer toolkit. 一个全栈开发者工具箱。
+> A developer toolbox with system monitoring, process management, and AI integration.
 
-[English](./README.md) | [中文](./README_CN.md)
-
-[![Stars](https://img.shields.io/github/stars/jingjing737/devtools-hub?style=flat)](https://github.com/jingjing737/devtools-hub/stargazers)
+[![Python](https://img.shields.io/badge/Python-3.9+-blue)](https://python.org)
+[![Flask](https://img.shields.io/badge/Flask-2.0+-green)](https://flask.palletsprojects.com/)
 [![License](https://img.shields.io/github/license/jingjing737/devtools-hub)](LICENSE)
-![Python](https://img.shields.io/badge/Python-3.9+-blue)
-![Node](https://img.shields.io/badge/Node-18+-green)
 
-## ✨ Features
+## Features
 
-- 🖥️ **Dashboard** - Web-based control panel
-- 🔧 **CLI Tools** - Essential developer commands
-- 📊 **Analytics** - Project metrics & monitoring
-- 🤖 **AI Integration** - Built-in AI assistance
-- 🔄 **Automation** - Workflow automation
-- 📁 **File Manager** - Cloud file management
+### 📊 Dashboard
+- Real-time system monitoring (CPU, Memory, Disk)
+- Process management
+- Network statistics
+- Dark theme UI
 
-## 📦 Quick Start
+### 🤖 AI Integration
+- Natural language commands
+- Smart system queries
+- Voice-ready API endpoints
 
-### Installation
+### ⚡ CLI Tools
+- Quick system status
+- Process management
+- Log viewing
+- File backup
+
+## Quick Start
 
 ```bash
-# Clone the repository
-git clone https://github.com/jingjing737/devtools-hub.git
-cd devtools-hub
-
 # Install dependencies
 pip install -r requirements.txt
-# or
-npm install
-```
 
-### Run Dashboard
-
-```bash
-# Python
+# Run dashboard
 python dashboard/app.py
 
-# Node
-node dashboard/app.js
+# Run AI API
+python dashboard/ai_api.py
+
+# Use CLI
+python cli/manager.py status
+python cli/manager.py processes
 ```
 
-Access at: `http://localhost:5000`
+## API Endpoints
 
-## 📁 Project Structure
+| Endpoint | Description |
+|----------|-------------|
+| `/api/status` | System status |
+| `/api/processes` | Process list |
+| `/api/disk` | Disk usage |
+| `/api/memory` | Memory usage |
+| `/api/network` | Network stats |
+| `/api/ai` | AI command interface |
+
+## Screenshots
+
+![Dashboard](docs/dashboard.png)
+
+## Project Structure
 
 ```
 devtools-hub/
-├── dashboard/          # Web dashboard
-│   ├── static/         # CSS, JS, images
-│   ├── templates/      # HTML templates
-│   └── app.py          # Flask app
-├── cli/                # CLI tools
-├── automation/         # Automation scripts
-├── analytics/          # Metrics & monitoring
-├── ai/                 # AI integration
-└── docs/               # Documentation
+├── dashboard/       # Web dashboard
+│   ├── app.py      # Main Flask app
+│   ├── ai_api.py   # AI endpoints
+│   └── templates/  # HTML templates
+├── cli/            # Command line tools
+│   └── manager.py  # System manager CLI
+├── docs/           # Documentation
+└── requirements.txt
 ```
 
-## 🛠️ Tools
+## Requirements
 
-### Dashboard Features
+- Python 3.9+
+- Flask
+- psutil
+- psutil (for system monitoring)
 
-| Feature | Description |
-|---------|-------------|
-| System Monitor | CPU, Memory, Disk usage |
-| Process Manager | View & manage processes |
-| File Browser | Browse project files |
-| Git Panel | Git operations UI |
-| Log Viewer | Real-time log streaming |
-| API Tester | REST API testing |
+## License
 
-### CLI Commands
+MIT License - feel free to use!
+
+## New Features (v2.0)
+
+### 🤖 AI Integration
+- OpenAI GPT-4 integration
+- Claude 3 integration
+- Local LLM support (Ollama)
+- Auto-code review
+- Smart error analysis
+
+### 📊 Enhanced Dashboard
+- Real-time system monitoring
+- Process management with AI insights
+- Resource usage predictions
+- Anomaly detection alerts
+
+### 🔧 Developer Tools
+- Git repository status
+- Docker container management
+- Database connections
+- API testing tools
+- Log analysis
+
+### 🚀 Performance
+- Async operations
+- Caching layer
+- Rate limiting
+- WebSocket support
+
+## API Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| /api/system | GET | System info |
+| /api/processes | GET | Process list |
+| /api/processes/:pid | DELETE | Kill process |
+| /api/ai/chat | POST | AI chat |
+| /api/ai/analyze | POST | Code analysis |
+| /api/git/status | GET | Git status |
+| /api/docker/ps | GET | Docker containers |
+
+## Configuration
+
+```python
+# config.py
+OPENAI_API_KEY = "your-key"
+CLAUDE_API_KEY = "your-key"
+OLLAMA_BASE_URL = "http://localhost:11434"
+```
+
+## Docker Support
 
 ```bash
-# System info
-devtools sysinfo
+# Build
+docker build -t devtools-hub .
 
-# Process management
-devtools ps
-devtools kill <pid>
-
-# Git helpers
-devtools git status
-devtools git log
-
-# File operations
-devtools ls
-devtools find <pattern>
+# Run
+docker run -p 5001:5001 devtools-hub
 ```
 
-## 🔌 Integrations
+## Screenshots
 
-- **OpenClaw** - Automation framework
-- **GitHub** - Repository management
-- **Notion** - Notes & docs
-- **Slack** - Notifications
-- **Webhooks** - Custom integrations
+(Coming soon)
 
-## 📊 Analytics
+## Roadmap
 
-Track your development metrics:
+- [ ] Kubernetes integration
+- [ ] Multi-server monitoring
+- [ ] Custom dashboards
+- [ ] Plugin system
+- [ ] Mobile app
 
-- Code commits over time
-- Language distribution
-- Project complexity
-- Team activity
+## Contributing
 
-## 🤖 AI Features
+PRs welcome! See CONTRIBUTING.md
 
-- Code review assistant
-- Bug detection
-- Optimization suggestions
-- Natural language queries
+## License
 
-## 📝 Documentation
-
-See [docs/](docs/) for detailed documentation:
-
-- [Installation Guide](docs/install.md)
-- [Dashboard Guide](docs/dashboard.md)
-- [CLI Reference](docs/cli.md)
-- [API Reference](docs/api.md)
-
-## 🤝 Contributing
-
-Contributions welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) first.
-
-## 📜 License
-
-MIT License - see [LICENSE](LICENSE)
-
----
-
-<p align="center">
-  ⭐ Star us on GitHub
-</p>
+MIT
