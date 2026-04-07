@@ -165,6 +165,7 @@ MIT
 
 | Version | Date | Changes |
 |---------|------|---------|
+| v2.4.0 | 2026-04-07 | Benchmark API, task scheduler, WebSocket, CI/CD |
 | v2.3.0 | 2026-04-07 | Disk monitor, log analyzer, K8s support |
 | v2.2.0 | 2026-04-07 | Process monitor, network monitor, AI integration |
 | v2.1.0 | 2026-04-07 | Health check API, Docker support |
@@ -472,3 +473,73 @@ docker run -d -p 5001:5001 \
 ---
 
 **📌 Version: v2.3.0 | 📅 Updated: 2026-04-07 14:51 GMT+8**
+
+## ⚡ Benchmark API
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| /api/benchmark/cpu | GET | CPU performance test |
+| /api/benchmark/memory | GET | Memory benchmark |
+| /api/benchmark/disk | GET | Disk I/O benchmark |
+| /api/benchmark/full | GET | Run all benchmarks |
+
+### Example Response
+```json
+{
+  "cpu": {"cpu_score": 245.3},
+  "memory": {"memory_score": 189.2},
+  "disk": {"disk_score": 312.8},
+  "total_score": 747.3
+}
+```
+
+## ⏰ Task Scheduler API
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| /api/scheduler/tasks | GET | List tasks |
+| /api/scheduler/tasks | POST | Create task |
+| /api/scheduler/tasks/:id | DELETE | Delete task |
+| /api/scheduler/tasks/:id/run | POST | Run task now |
+
+### Create Task Example
+```bash
+curl -X POST http://localhost:5001/api/scheduler/tasks \
+  -H "Content-Type: application/json" \
+  -d '{"name": "backup", "command": "backup.sh", "interval": 3600}'
+```
+
+## 🖥️ WebSocket Support (Coming Soon)
+```javascript
+const ws = new WebSocket('ws://localhost:5001/ws');
+ws.onmessage = (event) => {
+  const data = JSON.parse(event.data);
+  console.log('CPU:', data.cpu);
+};
+```
+
+## 🔄 CI/CD Integration
+
+### GitHub Actions
+```yaml
+name: System Check
+on: [push]
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run DevTools Check
+        run: |
+          curl http://your-server:5001/api/health
+          curl http://your-server:5001/api/benchmark/full
+```
+
+### GitLab CI
+```yaml
+check_system:
+  script:
+    - curl $DEVTOOLS_URL/api/health
+    - curl $DEVTOOLS_URL/api/processes/top
+```
+
+---
+
+**📌 Version: v2.4.0 | 📅 Updated: 2026-04-07 14:57 GMT+8**
