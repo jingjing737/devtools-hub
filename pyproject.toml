@@ -1,11 +1,16 @@
 [build-system]
-requires = ["setuptools"]
-build-backend = "setuptools.build-backend"
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "devtools-hub"
-version = "2.5.0"
+version = "3.2.0"
 dependencies = ["flask", "psutil", "requests"]
+requires-python = ">=3.7"
 
 [project.scripts]
 devtools = "devtools_hub.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["devtools_hub*"]
