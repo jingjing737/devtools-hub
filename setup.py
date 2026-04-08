@@ -2,12 +2,13 @@ from setuptools import setup, find_packages
 
 setup(
     name="devtools-hub",
-    version="2.5.0",
+    version="3.2.0",
     packages=find_packages(),
     install_requires=["flask", "psutil", "requests"],
     entry_points={
         "console_scripts": [
-            "devtools=devtools_hub.cli:main"
+            "devtools=devtools_hub.cli:main",
+            "dev=devtools_hub.cli:main"
         ]
     },
     author="jingjing737",
