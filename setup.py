@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="devtools-hub",
-    version="3.2.0",
+    version="3.5.0",
     packages=find_packages(),
     install_requires=["flask", "psutil", "requests"],
     entry_points={
