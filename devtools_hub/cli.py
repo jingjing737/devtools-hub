@@ -27,6 +27,7 @@ URL = f"http://localhost:{PORT}"
 
 def check():
     try:
+        import requests
         r = requests.get(f"{URL}/api/health", timeout=1)
         return r.ok
     except:
@@ -35,7 +36,7 @@ def check():
 def main():
     if len(sys.argv) < 2:
         print("""
-🔧 DevTools Hub v3.2.0 - 开发者工具集
+🔧 DevTools Hub v3.5.0 - 开发者工具集
 
 用法: devtools <命令>  或  dev <命令>
 
@@ -175,34 +176,25 @@ def main():
   uninstall   卸载应用
   running     运行中的应用
   processes   后台进程
-
-🧮 实用工具:
-  calc        快速计算器
-  server      HTTP 服务器
-  path        PATH 环境变量
-  port        端口占用查询
-  copy        复制到剪贴板
-  paste       读取剪贴板
-  filesize    文件大小转换
-  qr          生成二维码
-  jwt         JWT 解码
-  urldecode   URL 解码
-  urlencode   URL 编码
-  crontab     查看/管理定时任务
-  clipboard   剪贴板操作
-  extract     压缩包解压
-  download    下载文件
-  whois       域名查询
-  myip        查看本机所有IP
 """)
         return
 
-    cmd = sys.argv[1]
+    # ========== 参数解析 ==========
+    if len(sys.argv) >= 2 and sys.argv[1] in ('-v', '--version'):
+        print("v3.5.0")
+        return
+    elif len(sys.argv) >= 2 and sys.argv[1] in ('-h', '--help'):
+        print("用法: devtools <命令>  或  dev <命令>")
+        print("       devtools -v       或  dev -v")
+        return
+    else:
+        cmd = sys.argv[1]
     args = sys.argv[2:]
 
     # ========== 系统监控 ==========
     if cmd == "status":
         if check():
+            import requests
             r = requests.get(f"{URL}/api/health")
             print(json.dumps(r.json(), indent=2))
         else:
@@ -1021,6 +1013,7 @@ Python:
 
     elif cmd == "bench":
         if check():
+            import requests
             r = requests.get(f"{URL}/api/benchmark/full")
             print(json.dumps(r.json(), indent=2))
         else:
@@ -1375,817 +1368,997 @@ Python:
     elif cmd == "processes":
         os.system('launchctl list | grep -v "^-"')
 
-    elif cmd == "curl":
-        url = args[0] if args else input("URL: ")
-        method = args[1].upper() if len(args) > 1 else "GET"
-        try:
-            r = requests.request(method, url, timeout=10)
-            print(f"📊 Status: {r.status_code}")
-            print(f"📏 Size: {len(r.content)} bytes")
-            print(f"\n{r.text[:2000]}")
-        except ImportError:
-            os.system(f'curl -s "{url}" | head -50')
-        except:
-            print("❌ 请求失败")
+    # ========== Git 增强 ==========
+    elif cmd == "glog2":
+        os.system('git log --oneline --graph --all -20')
 
-    elif cmd == "headers":
-        url = args[0] if args else input("URL: ")
-        try:
-            r = requests.head(url, timeout=10)
-            for k, v in r.headers.items():
-                print(f"  {k}: {v}")
-        except:
-            print("❌ 获取失败")
+    elif cmd == "gstash":
+        os.system('git stash list')
 
-    elif cmd == "dns":
-        domain = args[0] if args else input("域名: ")
-        try:
-            addrs = socket.getaddrinfo(domain, 80)
-            for a in addrs:
-                print(f"  {a[4][0]} ({a[0].name})")
-        except:
-            os.system(f'dig {domain} +short')
+    elif cmd == "gclean":
+        os.system('git branch --merged | grep -v "\\*" | xargs git branch -d 2>/dev/null; echo "✅ 清理完成"')
 
-    elif cmd == "ping":
-        host = args[0] if args else "8.8.8.8"
-        count = args[1] if len(args) > 1 else "4"
-        os.system(f'ping -c {count} {host}')
+    elif cmd == "gundo":
+        os.system('git reset --soft HEAD~1 2>/dev/null || echo "❌ 无法撤销"')
 
-    elif cmd == "scan":
-        if not args:
-            print("用法: devtools scan <host> [端口]")
-            return
-        host = args[0]
-        ports = args[1] if len(args) > 1 else "80,443,22,3389,3306,5432,6379,27017"
-        for port in ports.split(','):
-            try:
-                s = socket.socket()
-                s.settimeout(1)
-                result = s.connect_ex((host, int(port)))
-                if result == 0:
-                    print(f"  ✅ {port} 开放")
-                s.close()
-            except:
-                pass
+    elif cmd == "gfork":
+        os.system('git fetch origin && git rebase origin/$(git branch --show-current)')
 
-    elif cmd == "uuid":
-        count = int(args[0]) if args and args[0].isdigit() else 1
-        for i in range(count):
-            print(uuid.uuid4())
+    # ========== Docker 增强 ==========
+    elif cmd == "dps":
+        os.system('docker ps --format "table {{.Names}}\\t{{.Status}}\\t{{.Ports}}"')
 
-    elif cmd == "password":
-        import secrets
-        length = int(args[0]) if args and args[0].isdigit() else 16
-        chars = args[1] if len(args) > 1 else "alphanumeric"
-        if chars == "alphanumeric":
-            print(secrets.token_urlsafe(length))
-        elif chars == "hex":
-            print(secrets.token_hex(length))
-        elif chars == "ascii":
-            print(secrets.token_urlsafe(length))
+    elif cmd == "dpsa":
+        os.system('docker ps -a --format "table {{.Names}}\\t{{.Status}}\\t{{.CreatedAt}}"')
 
-    elif cmd == "base64enc":
-        text = ' '.join(args) if args else sys.stdin.read().strip()
-        import base64
-        print(base64.b64encode(text.encode()).decode())
+    elif cmd == "dimages":
+        os.system('docker images --format "table {{.Repository}}\\t{{.Tag}}\\t{{.Size}}"')
 
-    elif cmd == "base64dec":
-        text = ' '.join(args) if args else sys.stdin.read().strip()
-        import base64
-        try:
-            print(base64.b64decode(text).decode())
-        except:
-            print("❌ 解码失败")
+    elif cmd == "dstop":
+        os.system('docker stop $(docker ps -q) 2>/dev/null; echo "✅ 所有容器已停止"')
 
-    elif cmd == "hex":
-        text = ' '.join(args) if args else input("文本转HEX: ")
-        print(text.encode().hex())
+    elif cmd == "drm":
+        os.system('docker container prune -f; echo "✅ 清理完成"')
 
-    elif cmd == "unhex":
-        text = ' '.join(args) if args else input("HEX转文本: ")
-        print(bytes.fromhex(text).decode())
-
-    elif cmd == "md5":
-        data = ' '.join(args) if args else input("MD5: ")
-        print(hashlib.md5(data.encode()).hexdigest())
-
-    elif cmd == "sha256":
-        data = ' '.join(args) if args else input("SHA256: ")
-        print(hashlib.sha256(data.encode()).hexdigest())
-
-    elif cmd == "tree":
-        path = os.path.expanduser(args[0]) if args else "."
-        max_depth = int(args[1]) if len(args) > 1 else 3
-        def show_tree(p, prefix="", depth=0):
-            if depth >= max_depth:
-                return
-            try:
-                items = sorted(os.listdir(p))
-                dirs = [i for i in items if os.path.isdir(os.path.join(p, i))]
-                files = [i for i in items if os.path.isfile(os.path.join(p, i))]
-                for f in files:
-                    print(f"{prefix}├── 📄 {f}")
-                for d in dirs:
-                    print(f"{prefix}├── 📁 {d}/")
-                    show_tree(os.path.join(p, d), prefix + "│   ", depth + 1)
-            except:
-                pass
-        print(f"📁 {path}/")
-        show_tree(path)
-
-    elif cmd == "find":
-        if len(args) < 2:
-            print("用法: devtools find <目录> <关键字>")
-            return
-        path = os.path.expanduser(args[0])
-        keyword = args[1]
-        result = subprocess.run(['find', path, '-name', f'*{keyword}*', '-type', 'f'], 
-                              capture_output=True, text=True)
-        print(result.stdout or "(未找到)")
-
-    elif cmd == "grep":
-        if len(args) < 2:
-            print("用法: devtools grep <文件> <关键字>")
-            return
-        path = os.path.expanduser(args[0])
-        keyword = args[1]
-        result = subprocess.run(['grep', '-n', keyword, path], 
-                              capture_output=True, text=True)
-        print(result.stdout or "(未找到)")
-
-    elif cmd == "size":
-        path = os.path.expanduser(args[0]) if args else "."
-        total = 0
-        for dirpath, dirnames, filenames in os.walk(path):
-            for f in filenames:
-                fp = os.path.join(dirpath, f)
-                try:
-                    total += os.path.getsize(fp)
-                except:
-                    pass
-        for unit in ['B', 'KB', 'MB', 'GB', 'TB']:
-            if total < 1024:
-                print(f"📦 {total:.2f} {unit}")
-                break
-            total /= 1024
-
-    elif cmd == "cleanup":
-        paths = [
-            os.path.expanduser("~/Library/Logs"),
-            "/tmp",
-            "/var/tmp"
-        ]
-        for p in paths:
-            if os.path.exists(p):
-                result = subprocess.run(['du', '-sh', p], capture_output=True, text=True)
-                print(f"  {p}: {result.stdout.strip()}")
-        print("💡 使用 'brew cleanup' 清理 Homebrew 缓存")
-
-    elif cmd == "service":
-        action = args[0] if args else "status"
-        name = args[1] if len(args) > 1 else "mysql"
-        if action == "start":
-            os.system(f'sudo launchctl load /Library/LaunchDaemons/{name}.plist')
-        elif action == "stop":
-            os.system(f'sudo launchctl unload /Library/LaunchDaemons/{name}.plist')
-        elif action == "status":
-            os.system(f'launchctl list | grep {name}')
-        else:
-            print(f"用法: service <start|stop|status> <服务名>")
-
-    elif cmd == "cron":
-        if len(args) < 2:
-            print("用法: cron <add|remove|list> <规则>")
-            print("示例: cron add '*/5 * * * *' 'echo hello'")
-            return
-        action, rule = args[0], args[1]
-        if action == "add":
-            cmd_str = ' '.join(args[2:]) if len(args) > 2 else input("命令: ")
-            cron = f"{rule} {cmd_str}"
-            subprocess.run(f'(crontab -l; echo "{cron}") | crontab -', shell=True)
-            print("✅ 已添加")
-        elif action == "remove":
-            subprocess.run('crontab -r', shell=True)
-            print("✅ 已清除")
-        else:
-            result = subprocess.run(['crontab', '-l'], capture_output=True, text=True)
-            print(result.stdout or "(无任务)")
-
-    elif cmd == "git":
-        subcmd = args[0] if args else "status"
-        os.system(f'git {subcmd}')
-
-    elif cmd == "github":
-        repo = args[0] if args else ""
-        if not repo:
-            print("用法: github <用户名/仓库>")
-            return
-        try:
-            r = requests.get(f'https://api.github.com/repos/{repo}', timeout=10)
-            if r.status_code == 200:
-                data = r.json()
-                print(f"📦 {data['full_name']}")
-                print(f"⭐ {data['stargazers_count']} | 🍴 {data['forks_count']}")
-                print(f"📝 {data['description']}")
-                print(f"🔗 {data['html_url']}")
-            else:
-                print("❌ 仓库不存在")
-        except:
-            print("❌ 网络错误")
-
-    elif cmd == "pypi":
-        package = args[0] if args else ""
-        if not package:
-            print("用法: pypi <包名>")
-            return
-        try:
-            r = requests.get(f'https://pypi.org/pypi/{package}/json', timeout=10)
-            if r.status_code == 200:
-                data = r.json()
-                print(f"📦 {data['info']['name']} v{data['info']['version']}")
-                print(f"📝 {data['info']['summary']}")
-                print(f"🔗 https://pypi.org/project/{package}/")
-            else:
-                print("❌ 包不存在")
-        except:
-            print("❌ 网络错误")
-
-    elif cmd == "now":
-        now = datetime.datetime.now()
-        print(f"🕐 {now.strftime('%Y-%m-%d %H:%M:%S')}")
-        print(f"📅 {now.strftime('%A, %B %d, %Y')}")
-        print(f"⏱️  时间戳: {int(now.timestamp())}")
-
-    elif cmd == "dateconv":
-        if not args:
-            print("用法: dateconv <时间戳或日期>")
-            print("示例: dateconv 1712505600")
-            print("示例: dateconv 2024-04-08")
-            return
-        try:
-            ts = int(args[0])
-            print(datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S'))
-        except:
-            try:
-                dt = datetime.datetime.strptime(args[0], '%Y-%m-%d')
-                print(f"时间戳: {int(dt.timestamp())}")
-            except:
-                print("❌ 格式错误")
-
-    elif cmd == "timeconv":
-        if len(args) < 2:
-            print("用法: timeconv <时间> <源时区> <目标时区>")
-            return
-        time_str, from_tz, to_tz = args[0], args[1], args[2]
-        print(f"🕐 {time_str} ({from_tz} → {to_tz})")
-        # 简单实现，显示 UTC 时间
-        print("💡 建议使用: date -j -f '%Y-%m-%d %H:%M'")
-
-    elif cmd == "todo":
-        path = os.path.expanduser("~/.devtools_todo.txt")
-        if not args:
-            if os.path.exists(path):
-                with open(path) as f:
-                    for i, line in enumerate(f, 1):
-                        print(f"  {i}. {line.strip()}")
-            else:
-                print("(无待办事项)")
-        elif args[0] == "add":
-            item = ' '.join(args[1:])
-            with open(path, 'a') as f:
-                f.write(f"{item}\n")
-            print("✅ 已添加")
-        elif args[0] == "clear":
-            if os.path.exists(path):
-                os.remove(path)
-            print("✅ 已清空")
-        else:
-            print(f"  📝 {args[0]}")
-
-    elif cmd == "note":
-        path = os.path.expanduser("~/.devtools_notes.txt")
-        if not args:
-            if os.path.exists(path):
-                with open(path) as f:
-                    print(f.read())
-        else:
-            with open(path, 'a') as f:
-                f.write(f"\n[{datetime.datetime.now().strftime('%Y-%m-%d %H:%M')}] ")
-                f.write(' '.join(args) + "\n")
-            print("✅ 已保存")
-
-    elif cmd == "cheatsheet":
-        sheets = {
-            'git': "git status | git add . | git commit -m | git push",
-            'docker': "docker ps | docker images | docker build | docker run",
-            'ssh': "ssh user@host | ssh -i key user@host | ssh-copy-id user@host",
-            'vim': "i插入 | esc退出 | :wq保存 | :q!强制退出 | dd删除行",
-            'tmux': "Ctrl+b c新建 | Ctrl+b d分离 | tmux attach恢复",
-        }
+    elif cmd == "dlogs":
         if args:
-            key = args[0]
-            print(sheets.get(key, "(未找到速查表)"))
+            os.system('docker logs -f --tail 100 ' + args[0])
         else:
-            for k, v in sheets.items():
-                print(f"📋 {k}: {v}")
+            print("用法: devtools dlogs <容器名>")
 
-    elif cmd == "snippet":
-        snippets = {
-            'http': 'python3 -m http.server 8080',
-            'json': 'cat file.json | python3 -m json.tool',
-            'port': 'lsof -i :PORT',
-            'kill': 'kill -9 PID',
-            'gitlog': 'git log --oneline -10',
-        }
-        name = args[0] if args else ""
-        if name and name in snippets:
-            print(snippets[name])
-            import subprocess
-            subprocess.run('pbcopy', input=snippets[name].encode())
-            print("✅ 已复制到剪贴板")
+    elif cmd == "dexec":
+        if len(args) >= 2:
+            os.system('docker exec -it ' + args[0] + ' ' + ' '.join(args[1:]))
         else:
-            for k, v in snippets.items():
-                print(f"  {k}: {v}")
+            print("用法: devtools dexec <容器名> <命令>")
 
-    elif cmd == "cheat":
-        # 快速命令速查
-        shortcuts = {
-            's': 'devtools status',
-            'c': 'devtools cpu',
-            'm': 'devtools mem',
-            'd': 'devtools disk',
-            'p': 'devtools ports',
-            'i': 'devtools ip',
-            'k': 'devtools killport',
-            'w': 'devtools weather',
-            'ip': 'devtools myip',
-            'calc': 'devtools calc',
-        }
+    # ========== 系统工具 ==========
+    elif cmd == "launchctl":
         if args:
-            key = args[0]
-            print(f"📝 {shortcuts.get(key, key)}")
+            os.system('launchctl ' + ' '.join(args))
         else:
-            print("💡 快捷命令速查:")
-            for k, v in shortcuts.items():
-                print(f"  {k} → {v}")
-
-    elif cmd == "dockerps":
-        os.system('docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"')
-
-    elif cmd == "dockerlogs":
-        container = args[0] if args else input("容器名: ")
-        lines = args[1] if len(args) > 1 else "50"
-        os.system(f'docker logs --tail {lines} {container}')
-
-    elif cmd == "dockerexec":
-        if len(args) < 2:
-            print("用法: dockerexec <容器> <命令>")
-            return
-        os.system(f'docker exec -it {args[0]} {args[1]}')
-
-    elif cmd == "npm":
-        subcmd = args[0] if args else "list"
-        os.system(f'npm {subcmd}')
-
-    elif cmd == "pip":
-        subcmd = args[0] if args else "list"
-        os.system(f'pip3 {subcmd}')
-
-    elif cmd == "brew":
-        subcmd = args[0] if args else "list"
-        os.system(f'brew {subcmd}')
-
-    elif cmd == "sysinfo":
-        import platform
-        print(f"🖥️  {platform.node()}")
-        print(f"   系统: {platform.system()} {platform.release()}")
-        print(f"   版本: {platform.version()}")
-        print(f"   架构: {platform.machine()}")
-        print(f"   Python: {platform.python_version()}")
-
-    elif cmd == "battery":
-        try:
-            result = subprocess.run(['pmset', '-g', 'batt'], capture_output=True, text=True)
-            print(result.stdout)
-        except:
-            print("❌ 无法获取电池信息")
-
-    elif cmd == "wifi":
-        result = subprocess.run(['networksetup', '-getairportnetwork', 'en0'], capture_output=True, text=True)
-        print(f"📶 当前WiFi: {result.stdout.strip()}")
-        # 附近网络
-        os.system('/System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport scan | head -20')
-
-    elif cmd == "openurl":
-        url = args[0] if args else input("URL: ")
-        os.system(f'open "{url}"')
-
-    elif cmd == "kill":
-        if not args:
-            print("用法: devtools kill <进程名或PID>")
-            return
-        pid = args[0]
-        if pid.isdigit():
-            os.system(f'kill -9 {pid}')
-        else:
-            result = subprocess.run(['pkill', '-9', pid], capture_output=True, text=True)
-            if result.returncode == 0:
-                print(f"✅ 已终止: {pid}")
-            else:
-                print(f"❌ 进程不存在: {pid}")
-
-    elif cmd == "restart":
-        app = args[0] if args else input("应用名: ")
-        os.system(f'osascript -e \'quit app "{app}"\' && sleep 1 && open -a "{app}"')
-        print(f"✅ 已重启: {app}")
-
-    elif cmd == "recent":
-        count = int(args[0]) if args and args[0].isdigit() else 10
-        result = subprocess.run(['ls', '-lt', os.path.expanduser('~/Downloads')], 
-                              capture_output=True, text=True)
-        lines = result.stdout.strip().split('\n')[:count+1]
-        for line in lines[1:]:
-            print(line)
-
-    elif cmd == "empty":
-        folders = [
-            "~/Downloads",
-            "~/Desktop"
-        ]
-        for folder in folders:
-            expanded = os.path.expanduser(folder)
-            if os.path.exists(expanded):
-                result = subprocess.run(['ls', '-A', expanded], capture_output=True, text=True)
-                count = len(result.stdout.strip().split('\n')) if result.stdout.strip() else 0
-                print(f"📁 {folder}: {count} 个文件")
-
-    # ========== 实用工具 ==========
-    elif cmd == "calc":
-        expr = ' '.join(args) if args else input("计算: ")
-        try:
-            result = eval(expr, {"__builtins__": {}}, {})
-            print(f"= {result}")
-        except:
-            print("❌ 表达式错误")
-
-    elif cmd == "server":
-        port = int(args[0]) if args else 8080
-        folder = args[1] if len(args) > 1 else "."
-        print(f"🚀 启动 HTTP 服务器: http://localhost:{port}")
-        print(f"📁 目录: {os.path.abspath(folder)}")
-        print(f"按 Ctrl+C 停止")
-        os.system(f'cd "{os.path.abspath(folder)}" && python3 -m http.server {port}')
-
-    elif cmd == "path":
-        paths = os.environ.get('PATH', '').split(':')
-        for i, p in enumerate(paths, 1):
-            print(f"  {i}. {p}")
-
-    elif cmd == "port":
-        target = args[0] if args else ""
-        if not target:
-            print("用法: devtools port <端口号或关键字>")
-            return
-        result = subprocess.run(['lsof', '-i', f':{target}'], capture_output=True, text=True)
-        if result.stdout:
-            print(result.stdout)
-        else:
-            print(f"❌ 端口 {target} 未被占用")
-
-    elif cmd == "copy":
-        text = ' '.join(args) if args else input("输入要复制的内容: ")
-        subprocess.run('pbcopy', input=text.encode(), shell=False)
-        print(f"✅ 已复制: {text[:50]}{'...' if len(text) > 50 else ''}")
-
-    elif cmd == "paste":
-        result = subprocess.run(['pbpaste'], capture_output=True)
-        print(result.stdout.decode() or "(剪贴板为空)")
-
-    elif cmd == "filesize":
-        if not args:
-            print("用法: devtools filesize <文件路径或大小(字节)>")
-            return
-        path = os.path.expanduser(args[0])
-        if os.path.exists(path):
-            size = os.path.getsize(path)
-        else:
-            try:
-                size = int(args[0])
-            except:
-                print("❌ 无效输入")
-                return
-        for unit in ['B', 'KB', 'MB', 'GB', 'TB']:
-            if size < 1024:
-                print(f"📦 {size:.2f} {unit}")
-                break
-            size /= 1024
-
-    elif cmd == "qr":
-        text = ' '.join(args) if args else input("输入二维码内容: ")
-        try:
-            import qrcode
-            img = qrcode.make(text)
-            path = os.path.expanduser("~/Desktop/qrcode.png")
-            img.save(path)
-            print(f"✅ 已保存: {path}")
-            os.system(f'open "{path}"')
-        except ImportError:
-            print("❌ 需要安装 qrcode: pip3 install qrcode pillow")
-            print(f"📝 内容: {text}")
-
-    elif cmd == "jwt":
-        token = args[0] if args else input("输入 JWT: ")
-        try:
-            parts = token.split('.')
-            for i, part in enumerate(['Header', 'Payload', 'Signature']):
-                print(f"\n📋 {part}:")
-                import base64
-                padded = part + '=' * (4 - len(part) % 4) if i < 2 else ''
-                decoded = base64.urlsafe_b64decode(parts[i] + padded)
-                print(json.dumps(json.loads(decoded), indent=2))
-        except:
-            print("❌ JWT 解析失败")
-
-    elif cmd == "urldecode":
-        text = ' '.join(args) if args else input("输入要解码的 URL: ")
-        print(f"✅ {urllib.parse.unquote(text)}")
-
-    elif cmd == "urlencode":
-        text = ' '.join(args) if args else input("输入要编码的文本: ")
-        print(f"✅ {urllib.parse.quote(text)}")
+            os.system('launchctl list | head -30')
 
     elif cmd == "crontab":
         if args and args[0] == '-l':
-            result = subprocess.run(['crontab', '-l'], capture_output=True, text=True)
-            print(result.stdout or "(无定时任务)")
-        elif args and args[0] == '-r':
-            subprocess.run(['crontab', '-r'])
-            print("✅ 已清除所有定时任务")
+            os.system('crontab -l')
+        elif args and args[0] == '-e':
+            os.system('crontab -e')
         else:
-            result = subprocess.run(['crontab', '-l'], capture_output=True, text=True)
-            print(result.stdout or "(无定时任务)")
+            print("用法: devtools crontab -l|-e")
 
-    elif cmd == "clipboard":
-        if args and args[0] == 'history':
-            print("📋 剪贴板历史 (最近10条):")
-            try:
-                import sqlite3
-                db = subprocess.run(['sqlite3', os.path.expanduser('~/Library/Application Support/com.apple.Notes/Notes.sqlite'), 'SELECT ZTEXT FROM ZNOTEBODY'], capture_output=True, text=True)
-                print(db.stdout[:500] or "(无历史)")
-            except:
-                print("(需要访问权限)")
+    elif cmd == "lock":
+        os.system('/System/Library/CoreServices/Menu\\ Extras/User.menu/Contents/Resources/CGSession -suspend')
+
+    elif cmd == "restart":
+        os.system('sudo shutdown -r now')
+
+    elif cmd == "shutdown":
+        os.system('sudo shutdown -h now')
+
+    # ========== 进程增强 ==========
+    elif cmd == "lsof":
+        if args:
+            os.system('lsof -i ' + args[0])
         else:
-            result = subprocess.run(['pbpaste'], capture_output=True)
-            print(result.stdout.decode() or "(剪贴板为空)")
+            os.system('lsof -i -P | head -30')
 
+    elif cmd == "pgrep":
+        if args:
+            os.system('pgrep -l "' + args[0] + '"')
+        else:
+            print("用法: devtools pgrep <进程名>")
+
+    elif cmd == "pkill":
+        if args:
+            os.system('pkill -f "' + ' '.join(args) + '"; echo "✅ 已终止"')
+        else:
+            print("用法: devtools pkill <进程名>")
+
+    # ========== 网络增强 ==========
+    elif cmd == "ssh":
+        if args:
+            os.system('ssh ' + ' '.join(args))
+        else:
+            print("用法: devtools ssh <用户@主机>")
+
+    elif cmd == "scp":
+        if len(args) >= 2:
+            os.system('scp -r ' + args[0] + ' ' + args[1])
+        else:
+            print("用法: devtools scp <源> <目标>")
+
+    elif cmd == "rsync":
+        if len(args) >= 2:
+            os.system('rsync -avz ' + args[0] + ' ' + args[1])
+        else:
+            print("用法: devtools rsync <源> <目标>")
+
+    elif cmd == "wget":
+        if args:
+            os.system('wget -O ~/Downloads/$(basename ' + args[0] + ') ' + args[0])
+        else:
+            print("用法: devtools wget <URL>")
+
+    elif cmd == "curl-post":
+        if args:
+            os.system('curl -X POST ' + ' '.join(args))
+        else:
+            print("用法: devtools curl-post <URL>")
+
+    elif cmd == "curl-headers":
+        if args:
+            os.system('curl -I ' + args[0])
+        else:
+            print("用法: devtools curl-headers <URL>")
+
+    # ========== 文件工具增强 ==========
     elif cmd == "extract":
-        if not args:
-            print("用法: devtools extract <压缩文件>")
-            return
-        file = os.path.expanduser(args[0])
-        import shutil
-        if file.endswith('.zip'):
-            shutil.unpack_archive(file, os.path.dirname(file))
-        elif file.endswith(('.tar.gz', '.tgz')):
-            shutil.unpack_archive(file, os.path.dirname(file))
-        elif file.endswith('.tar'):
-            shutil.unpack_archive(file, os.path.dirname(file))
+        if args:
+            import zipfile
+            import tarfile
+            f = args[0]
+            if f.endswith('.zip'):
+                zipfile.ZipFile(f).extractall('.')
+            elif f.endswith('.tar.gz') or f.endswith('.tgz'):
+                tarfile.open(f).extractall('.')
+            elif f.endswith('.tar.bz2'):
+                tarfile.open(f, 'r:bz2').extractall('.')
+            print("✅ 已解压: " + f)
         else:
-            print("❌ 不支持的格式")
-            return
-        print(f"✅ 已解压: {file}")
+            print("用法: devtools extract <文件>")
 
-    elif cmd == "download":
-        if not args:
-            print("用法: devtools download <URL>")
-            return
-        url = args[0]
-        filename = args[1] if len(args) > 1 else os.path.basename(url)
-        try:
-            urllib.request.urlretrieve(url, filename)
-            print(f"✅ 已下载: {filename}")
-        except Exception as e:
-            print(f"❌ 下载失败: {e}")
-
-    elif cmd == "whois":
-        if not args:
-            print("用法: devtools whois <域名>")
-            return
-        domain = args[0]
-        os.system(f'whois {domain}')
-
-    elif cmd == "myip":
-        print("🌐 本机 IP 信息:")
-        hostname = socket.gethostname()
-        print(f"  主机名: {hostname}")
-        print(f"  本地IP: {socket.gethostbyname(hostname)}")
-        try:
-            ip = urllib.request.urlopen('https://api.ipify.org', timeout=3).read().decode()
-            print(f"  公网IP: {ip}")
-        except:
-            print("  公网IP: (获取失败)")
-
-    elif cmd == "speedtest":
-        print("📡 正在测速...")
-        try:
-            import speedtest
-            s = speedtest.Speedtest()
-            s.get_servers()
-            s.get_best_server()
-            download = s.download() / 1024 / 1024
-            upload = s.upload() / 1024 / 1024
-            print(f"⬇️ 下载: {download:.2f} Mbps")
-            print(f"⬆️ 上传: {upload:.2f} Mbps")
-        except ImportError:
-            print("❌ 需要安装: pip3 install speedtest-cli")
-        except:
-            print("❌ 测速失败")
-
-    elif cmd == "weather":
-        if not args:
-            city = "Shanghai"
+    elif cmd == "backup":
+        if args:
+            src = args[0]
+            dst = "~/Downloads/" + os.path.basename(src) + "_backup_" + datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+            os.system('cp -r ' + src + ' ' + dst)
+            print("✅ 备份到: " + dst)
         else:
-            city = ' '.join(args)
-        try:
-            url = f"https://wttr.in/{city}?format=3"
-            result = urllib.request.urlopen(url, timeout=3).read().decode()
-            print(result)
-        except:
-            print("❌ 获取天气失败")
+            print("用法: devtools backup <文件或目录>")
 
-    elif cmd == "translate":
-        if len(args) < 2:
-            print("用法: devtools translate <中文或英文文本>")
-            return
-        text = ' '.join(args)
-        try:
-            r = requests.post('https://api.mymemory.translated.net/get', 
-                            data={'q': text, 'langpair': 'zh|en' if '\u4e00' <= text[0] <= '\u9fff' else 'en|zh'},
-                            timeout=5)
-            result = r.json()
-            print(f"📝 {result['responseData']['translatedText']}")
-        except:
-            print("❌ 翻译失败（需要网络）")
-
-    elif cmd == "shorten":
-        if not args:
-            print("用法: devtools shorten <URL>")
-            return
-        url = args[0]
-        try:
-            r = requests.post('https://tinyurl.com/api-create.php', 
-                            data={'url': url}, timeout=5)
-            print(f"🔗 {r.text}")
-        except:
-            print("❌ 短链接生成失败")
-
-    elif cmd == "hash":
-        if len(args) < 2:
-            print("用法: devtools hash <md5|sha1|sha256> <文本或文件>")
-            return
-        algo = args[0]
-        data = args[1]
-        if os.path.exists(os.path.expanduser(data)):
-            with open(os.path.expanduser(data), 'rb') as f:
-                content = f.read()
+    # ========== 文本工具 ==========
+    elif cmd == "jq":
+        if args:
+            os.system('echo "' + args[0] + '" | jq')
         else:
-            content = data.encode()
-        if algo == 'md5':
-            print(f"MD5: {hashlib.md5(content).hexdigest()}")
-        elif algo == 'sha1':
-            print(f"SHA1: {hashlib.sha1(content).hexdigest()}")
-        elif algo == 'sha256':
-            print(f"SHA256: {hashlib.sha256(content).hexdigest()}")
-        else:
-            print("❌ 支持: md5, sha1, sha256")
+            print("用法: devtools jq <JSON>")
 
-    elif cmd == "random":
-        if not args:
-            import random
-            print(f"🎲 随机数: {random.randint(1, 100)}")
-        elif args[0] == 'str':
-            length = int(args[1]) if len(args) > 1 else 16
-            import secrets
-            print(f"🔐 随机字符串: {secrets.token_urlsafe(length)}")
-        elif args[0] == 'choice':
-            items = args[1:]
-            if items:
-                import random
-                print(f"🎯 随机选择: {random.choice(items)}")
-
-    elif cmd == "timestamp":
-        now = int(time.time())
-        print(f"🕐 当前时间戳: {now}")
-        dt = datetime.datetime.fromtimestamp(now)
-        print(f"📅 转换日期: {dt.strftime('%Y-%m-%d %H:%M:%S')}")
+    elif cmd == "color":
         if args:
             try:
-                ts = int(args[0])
-                print(f"📅 时间戳 {ts}: {datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')}")
+                r = int(args[0][0:2], 16)
+                g = int(args[0][2:4], 16)
+                b = int(args[0][4:6], 16)
+                print("HEX: #" + args[0])
+                print("RGB: (" + str(r) + ", " + str(g) + ", " + str(b) + ")")
+            except:
+                pass
+        else:
+            print("用法: devtools color <HEX>")
+
+    # ========== macOS 特有功能 ==========
+    elif cmd == "say":
+        if args:
+            os.system('say "' + ' '.join(args) + '"')
+        else:
+            print("用法: devtools say <文本>")
+
+    elif cmd == "caffeinate":
+        if args and args[0] == '-u':
+            secs = int(args[1]) if len(args) > 1 else 3600
+            os.system('caffeinate -u -t ' + str(secs))
+        else:
+            os.system('caffeinate -i &')
+
+    elif cmd == "pmset":
+        os.system('pmset -g everything | head -20')
+
+    # ========== 开发增强 ==========
+    elif cmd == "npm-outdated":
+        os.system('npm outdated 2>/dev/null || echo "❌ 非 npm 项目"')
+
+    elif cmd == "pip-list":
+        os.system(sys.executable + ' -m pip list --outdated 2>/dev/null || pip3 list --outdated')
+
+    elif cmd == "yarn":
+        if args:
+            os.system('yarn ' + ' '.join(args))
+        else:
+            os.system('yarn')
+
+    elif cmd == "pnpm":
+        if args:
+            os.system('pnpm ' + ' '.join(args))
+        else:
+            os.system('pnpm')
+
+    elif cmd == "bun":
+        if args:
+            os.system('bun ' + ' '.join(args))
+        else:
+            os.system('bun')
+
+    elif cmd == "cargo":
+        if args:
+            os.system('cargo ' + ' '.join(args))
+        else:
+            os.system('cargo')
+
+    # ========== 其他实用工具 ==========
+    elif cmd == "weather":
+        try:
+            ip = urllib.request.urlopen('https://api.ipify.org', timeout=5).read().decode()
+            data = urllib.request.urlopen('https://wttr.in/' + ip + '?format=j1', timeout=5).read().decode()
+            info = json.loads(data)
+            current = info['current_condition'][0]
+            print("🌤️  当前: " + current['weatherDesc'][0]['value'])
+            print("🌡️  温度: " + current['temp_C'] + "°C")
+            print("💧 湿度: " + current['humidity'] + "%")
+            print("💨 风速: " + current['windspeedKmph'] + " km/h")
+        except Exception as e:
+            print("❌ 获取天气失败: " + str(e))
+
+    elif cmd == "qrdecode":
+        if args:
+            os.system('qrencode -t UTF8 "' + args[0] + '"')
+        else:
+            print("用法: devtools qrdecode <文本>")
+
+    elif cmd == "hash":
+        if args:
+            text = ' '.join(args)
+            print("MD5:    " + hashlib.md5(text.encode()).hexdigest())
+            print("SHA1:   " + hashlib.sha1(text.encode()).hexdigest())
+            print("SHA256: " + hashlib.sha256(text.encode()).hexdigest())
+        else:
+            print("用法: devtools hash <文本>")
+
+    elif cmd == "alias":
+        os.system('alias | head -30')
+
+    elif cmd == "whatis":
+        if args:
+            os.system('whatis ' + args[0] + ' 2>/dev/null || man -w ' + args[0])
+
+    elif cmd == "neofetch":
+        import psutil
+        print("""
+        .:'                    """ + platform.node() + """
+    .'' .;:                  -----------
+    ,;. ::;'                   OS: """ + platform.system() + """ """ + platform.release() + """
+   ;:;. '';'                  Host: """ + (platform.mac_ver()[0] or 'Unknown') + """
+   '.;.:;.'`.;                Shell: """ + os.environ.get('SHELL', 'Unknown') + """
+    '.;.::.::.              CPU: """ + (platform.processor() or 'Apple Silicon') + """
+        '::'                 Memory: """ + str(round(psutil.virtual_memory().total/1024**3, 1)) + """ GB
+""")
+
+    elif cmd == "fortune":
+        os.system('fortune 2>/dev/null || echo "安装 fortune: brew install fortune"')
+
+    elif cmd == "sl":
+        print("🚂 Choo Choo! Type ls instead!")
+
+    elif cmd == "hack":
+        print("""
+    ██╗  ██╗ █████╗  ██████╗██╗  ██╗███████╗██████╗
+    ██║  ██║██╔══██╗██╔════╝██║ ██╔╝██╔════╝██╔══██╗
+    ███████║███████║██║     █████╔╝ █████╗  ██████╔╝
+    ██╔══██║██╔══██║██║     ██╔═██╗ ██╔══╝  ██╔══██╗
+    ██║  ██║██║  ██║╚██████╗██║  ██╗███████╗██║  ██║
+    ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
+        """)
+
+    elif cmd == "meow":
+        print("""
+    /\\_____/\\
+   /  o   o  \\
+  ( ==  ^  == )
+   )         (
+  (           )
+ ( (  )   (  ) )
+(__(__)___(__)__)
+""")
+
+    elif cmd == "banana":
+        print("🍌 Banana!")
+
+    elif cmd == "rocket":
+        print("       |       / \\      🚀")
+
+    elif cmd == "spin":
+        chars = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏']
+        for _ in range(30):
+            for c in chars:
+                print('\r' + c + ' Loading... ', end='', flush=True)
+                time.sleep(0.1)
+        print('\r✅ 完成!')
+
+    elif cmd == "countdown":
+        if args:
+            for i in range(int(args[0]), 0, -1):
+                print('\r⏰ ' + str(i) + ' ', end='', flush=True)
+                time.sleep(1)
+            print('\r🔔 时间到!')
+            if args[1:]:
+                os.system('say "' + ' '.join(args[1:]) + '"')
+        else:
+            print("用法: devtools countdown <秒数> [提示语]")
+
+    elif cmd == "pomodoro":
+        print("🍅 Pomodoro Timer: 25分钟专注工作")
+        for i in range(25, 0, -1):
+            print('\r🍅 ' + str(i).zfill(2) + ':00 ', end='', flush=True)
+            time.sleep(60)
+        print('\r🔔 时间到! 休息5分钟')
+        os.system('say "Pomodoro finished! Take a break."')
+
+    elif cmd == "ipinfo":
+        if args:
+            ip = args[0]
+        else:
+            try:
+                ip = urllib.request.urlopen('https://api.ipify.org', timeout=5).read().decode()
+            except:
+                ip = socket.gethostbyname(socket.gethostname())
+        try:
+            data = urllib.request.urlopen('https://ipapi.co/' + ip + '/json/', timeout=5).read().decode()
+            info = json.loads(data)
+            print("🌐 IP: " + ip)
+            print("🏠 城市: " + (info.get('city') or 'N/A'))
+            print("🌍 国家: " + (info.get('country_name') or 'N/A'))
+            print("📍 地区: " + (info.get('region') or 'N/A'))
+            print("🏢 ISP: " + (info.get('org') or 'N/A'))
+        except Exception as e:
+            print("❌ 查询失败: " + str(e))
+
+    elif cmd == "shorten":
+        if args:
+            url = args[0]
+            try:
+                data = urllib.request.urlopen('https://tinyurl.com/api-create.php?url=' + url, timeout=5).read().decode()
+                print("🔗 短链接: " + data)
+            except Exception as e:
+                print("❌ 缩短失败: " + str(e))
+        else:
+            print("用法: devtools shorten <URL>")
+
+    elif cmd == "qr":
+        if args:
+            os.system('qrencode -t ANSIUTF8 "' + args[0] + '"')
+        else:
+            print("用法: devtools qr <文本或URL>")
+
+    elif cmd == "clipboard":
+        content = subprocess.run(['pbpaste'], capture_output=True, text=True).stdout
+        print("📋 剪贴板内容 (" + str(len(content)) + " 字符):")
+        print(content[:500] if len(content) > 500 else content)
+
+    elif cmd == "clearlogs":
+        os.system('sudo rm -rf /var/log/*.log 2>/dev/null; echo "✅ 日志清理完成"')
+
+    elif cmd == "gcc":
+        if args:
+            src = args[0]
+            out = args[1] if len(args) > 1 else 'a.out'
+            os.system('gcc ' + src + ' -o ' + out)
+        else:
+            print("用法: devtools gcc <源文件> [输出文件]")
+
+    elif cmd == "make":
+        if args:
+            os.system('make ' + args[0])
+        else:
+            os.system('make')
+
+    elif cmd == "cmake":
+        if args:
+            os.system('cmake ' + args[0])
+        else:
+            print("用法: devtools cmake <目录>")
+
+
+    # ========== 进程监控增强 ==========
+    elif cmd == "process-tree":
+        import psutil
+        print("🌳 进程树 (前30个):")
+        for proc in sorted(psutil.process_iter(['pid', 'name', 'ppid']), key=lambda x: x.info['ppid'] or 0)[:30]:
+            try:
+                pinfo = proc.info
+                print(f"  {pinfo['pid']:>6} {pinfo['name'][:30]:<30} (PPID:{pinfo['ppid'] or 0})")
             except:
                 pass
 
-    elif cmd == "json":
-        text = ' '.join(args) if args else sys.stdin.read()
+    elif cmd == "threadcount":
+        import psutil
+        total = sum(p.num_threads() for p in psutil.process_iter())
+        print(f"🧵 总线程: {total}, 总进程: {len(list(psutil.process_iter()))}")
+
+    elif cmd == "process-memory":
+        if args:
+            try:
+                import psutil
+                for p in psutil.process_iter(['pid', 'name']):
+                    if args[0] in p.info['name']:
+                        mem = p.memory_info()
+                        print(f"{p.info['pid']:>6} {p.info['name'][:30]:<30} {mem.rss//1024//1024:>6}MB")
+            except:
+                print("用法: process-memory <名称>")
+        else:
+            print("用法: process-memory <名称>")
+
+    elif cmd == "top-cpu":
+        import psutil
+        procs = []
+        for p in psutil.process_iter():
+            try:
+                cpu = p.cpu_percent()
+                procs.append((p, cpu))
+            except:
+                pass
+        for p, cpu in sorted(procs, key=lambda x: x[1], reverse=True)[:10]:
+            try:
+                print(f"  {cpu:>5.1f}% {p.info['name'][:30]}")
+            except:
+                pass
+
+    elif cmd == "top-mem":
+        import psutil
+        procs = []
+        for p in psutil.process_iter():
+            try:
+                mem = p.memory_percent()
+                procs.append((p, mem))
+            except:
+                pass
+        for p, mem in sorted(procs, key=lambda x: x[1], reverse=True)[:10]:
+            try:
+                print(f"  {mem:>5.1f}% {p.info['name'][:30]}")
+            except:
+                pass
+
+    # ========== 系统工具 ==========
+    elif cmd == "sysreport":
+        print("📋 系统报告")
+        import psutil
+        print(f"系统: {platform.system()} {platform.release()}")
+        print(f"Python: {sys.version.split()[0]}")
+        print(f"CPU: {psutil.cpu_count(logical=False)}核 {psutil.cpu_percent()}%")
+        print(f"内存: {psutil.virtual_memory().percent}%")
+        print(f"磁盘: {psutil.disk_usage('/').percent}%")
+        os.system('git --version 2>/dev/null | head -1')
+        os.system('node --version 2>/dev/null')
+        os.system('docker --version 2>/dev/null | head -1')
+
+    elif cmd == "syshealth":
+        import psutil
+        checks = [
+            ("CPU", psutil.cpu_percent() < 80),
+            ("内存", psutil.virtual_memory().percent < 80),
+            ("磁盘", psutil.disk_usage('/').percent < 90),
+        ]
+        print("🏥 系统健康检查:")
+        for name, ok in checks:
+            print(f"  {'✅' if ok else '❌'} {name}")
+
+    elif cmd == "memory-graph":
+        import psutil
+        vm = psutil.virtual_memory()
+        used = int(vm.percent / 2)
+        print(f"💾 [{'█'*used}{'░'*(50-used)}] {vm.percent}%")
+
+    elif cmd == "cpu-graph":
+        import psutil
+        cpu = int(psutil.cpu_percent())
+        print(f"🔥 [{'█'*int(cpu/2)}{'░'*(50-int(cpu/2))}] {cpu}%")
+
+    elif cmd == "model":
+        os.system("sysctl -n hw.model 2>/dev/null")
+
+    elif cmd == "boot":
+        result = subprocess.run(['sysctl', '-n', 'kern.boottime'], capture_output=True, text=True)
+        print(result.stdout.strip())
+
+    elif cmd == "uprecords":
+        os.system('uptime | sed "s/.*up/up/"')
+
+    elif cmd == "users":
+        os.system('who 2>/dev/null || echo "无其他用户"')
+
+    elif cmd == "disk-info":
+        import psutil
+        for p in psutil.disk_partitions():
+            try:
+                u = psutil.disk_usage(p.mountpoint)
+                print(f"{p.device} ({p.mountpoint}): {u.total//1024**3}GB, {u.percent}% used")
+            except:
+                pass
+
+    elif cmd == "disk-check":
+        import psutil
+        d = psutil.disk_usage('/')
+        print(f"总计: {d.total//1024**3}GB")
+        print(f"已用: {d.used//1024**3}GB ({d.percent}%)")
+        print(f"可用: {d.free//1024**3}GB")
+
+    elif cmd == "memory-check":
+        import psutil
+        m = psutil.virtual_memory()
+        print(f"总计: {m.total//1024**3:.1f}GB")
+        print(f"已用: {m.used//1024**3:.1f}GB ({m.percent}%)")
+        print(f"可用: {m.available//1024**3:.1f}GB")
+
+    elif cmd == "cpu-arch":
+        print(f"架构: {platform.machine()}")
+        print(f"64位: {platform.machine() in ['x86_64', 'arm64']}")
+
+    elif cmd == "cpuinfo":
+        import psutil
+        cpu_freq = psutil.cpu_freq()
+        print(f"🔥 CPU: {psutil.cpu_count(logical=False)} 核 / {psutil.cpu_count(logical=True)} 线程")
+        if cpu_freq:
+            print(f"📊 频率: {cpu_freq.current:.0f} MHz")
+
+    # ========== 网络增强 ==========
+    elif cmd == "publicip-detail":
+        import json
         try:
-            parsed = json.loads(text)
-            print(json.dumps(parsed, indent=2, ensure_ascii=False))
-        except:
-            print("❌ JSON 解析失败")
+            data = json.loads(urllib.request.urlopen('https://ipinfo.io/json', timeout=5).read())
+            print(f"IP: {data.get('ip')}")
+            print(f"城市: {data.get('city')}")
+            print(f"地区: {data.get('region')}")
+            print(f"国家: {data.get('country')}")
+            print(f"组织: {data.get('org')}")
+        except Exception as e:
+            print(f"用法: publicip-detail")
 
-    elif cmd == "jsonmin":
-        text = ' '.join(args) if args else sys.stdin.read()
+    elif cmd == "publicip":
         try:
-            parsed = json.loads(text)
-            print(json.dumps(parsed, separators=(',', ':')))
+            print(urllib.request.urlopen('https://ipinfo.io/ip', timeout=3).read().decode().strip())
         except:
-            print("❌ JSON 解析失败")
+            pass
 
-    elif cmd == "gitlog":
-        result = subprocess.run(['git', 'log', '--oneline', '-10'], capture_output=True, text=True)
-        print(result.stdout or "(非 Git 仓库)")
+    elif cmd == "ports-known":
+        print("📡 常用端口:")
+        ports = {"21":"FTP","22":"SSH","25":"SMTP","53":"DNS","80":"HTTP","443":"HTTPS","3306":"MySQL","5432":"PostgreSQL","6379":"Redis","8080":"HTTP-Alt","27017":"MongoDB"}
+        for p,t in ports.items():
+            print(f"  {p}: {t}")
 
-    elif cmd == "gitdiff":
-        result = subprocess.run(['git', 'diff', '--stat'], capture_output=True, text=True)
-        print(result.stdout or "(无更改)")
+    elif cmd == "ports-listen":
+        print("📡 监听端口:")
+        os.system('lsof -i -P | grep LISTEN 2>/dev/null')
 
-    elif cmd == "gitsync":
-        branch = subprocess.run(['git', 'branch', '--show-current'], capture_output=True, text=True).stdout.strip()
-        print(f"🔄 同步分支: {branch}")
-        subprocess.run(['git', 'fetch', 'origin'])
-        subprocess.run(['git', 'reset', '--hard', f'origin/{branch}'])
-        print("✅ 已同步到远程最新")
+    elif cmd == "connections-all":
+        print("🌐 ESTABLISHED 连接:")
+        os.system('netstat -an | grep ESTABLISHED | wc -l')
+
+    elif cmd == "dnslookup":
+        if args:
+            try:
+                ip = socket.gethostbyname(args[0])
+                print(f"{args[0]} -> {ip}")
+            except:
+                print(f"无法解析: {args[0]}")
+        else:
+            print("用法: dnslookup <域名>")
+
+    elif cmd == "reverse-dns":
+        if args:
+            try:
+                name = socket.gethostbyaddr(args[0])
+                print(f"{args[0]} -> {name[0]}")
+            except:
+                print(f"无法反向解析: {args[0]}")
+        else:
+            print("用法: reverse-dns <IP>")
+
+    elif cmd == "httptest":
+        if args:
+            url = args[0]
+            os.system(f'curl -s -o /dev/null -w "状态码: %{{http_code}}\n耗时: %{{time_total}}s\n大小: %{{size_download}}B\n" "{url}"')
+        else:
+            print("用法: httptest <url>")
+
+    # ========== Git 增强 ==========
+    elif cmd == "glogf":
+        os.system("git log --oneline --graph --all --decorate -20 2>/dev/null")
+
+    elif cmd == "gcontributors":
+        os.system("git shortlog -sn 2>/dev/null | head -20 || echo '非 Git 目录'")
+
+    elif cmd == "glast":
+        os.system("git log -1 --format='%H%n%an%n%ae%n%ar%n%s' 2>/dev/null || echo '非 Git 目录'")
+
+    # ========== Docker 增强 ==========
+    elif cmd == "docker-clean":
+        print("🧹 Docker 清理")
+        os.system('docker system prune -f 2>/dev/null || echo "需要 Docker"')
+
+    elif cmd == "docker-stats":
+        os.system('docker stats --no-stream 2>/dev/null || echo "需要 Docker"')
+
+    # ========== 文件工具 ==========
+    elif cmd == "find-duplicates":
+        print("🔍 查找重复文件")
+        os.system('find ~/Documents -type f 2>/dev/null | head -50 | xargs -I{} md5 {} 2>/dev/null | sort | uniq -D | head -10')
+
+    elif cmd == "clean-temp":
+        print("🧹 清理临时文件")
+        os.system('rm -rf /tmp/*.log /tmp/*.tmp 2>/dev/null')
+        print("✅ 清理完成")
+
+    elif cmd == "disk-usage-tree":
+        print("📊 目录大小树")
+        if args:
+            os.system(f'du -sh "{args[0]}"/* 2>/dev/null | sort -rh | head -20')
+        else:
+            os.system('du -sh ~/Documents/* ~/Downloads/* 2>/dev/null | sort -rh | head -20')
+
+    elif cmd == "file-type-count":
+        print("📁 文件类型统计")
+        os.system('find ~/Documents -type f 2>/dev/null | sed "s/.*\.//" | sort | uniq -c | sort -rn | head -20')
+
+    elif cmd == " newest":
+        days = int(args[0]) if args and args[0].isdigit() else 7
+        print(f"📂 最近 {days} 天修改的文件:")
+        os.system(f'find ~ -type f -mtime -{days} 2>/dev/null | head -30')
+
+    elif cmd == "md5file":
+        if args:
+            import hashlib
+            h = hashlib.md5()
+            with open(args[0], 'rb') as f:
+                for chunk in iter(lambda: f.read(8192), b''):
+                    h.update(chunk)
+            print(f"MD5: {h.hexdigest()}")
+        else:
+            print("用法: md5file <文件>")
+
+    elif cmd == "sha256file":
+        if args:
+            import hashlib
+            h = hashlib.sha256()
+            with open(args[0], 'rb') as f:
+                for chunk in iter(lambda: f.read(8192), b''):
+                    h.update(chunk)
+            print(f"SHA256: {h.hexdigest()}")
+        else:
+            print("用法: sha256file <文件>")
+
+    elif cmd == "sha1file":
+        if args:
+            import hashlib
+            h = hashlib.sha1()
+            with open(args[0], 'rb') as f:
+                for chunk in iter(lambda: f.read(8192), b''):
+                    h.update(chunk)
+            print(f"SHA1: {h.hexdigest()}")
+        else:
+            print("用法: sha1file <文件>")
+
+    elif cmd == "file-info":
+        if args:
+            try:
+                s = os.stat(args[0])
+                print(f"文件: {args[0]}")
+                print(f"大小: {s.st_size} bytes")
+                print(f"权限: {oct(s.st_mode)[-3:]}")
+                print(f"修改: {datetime.datetime.fromtimestamp(s.st_mtime)}")
+            except:
+                print("用法: file-info <文件>")
+        else:
+            print("用法: file-info <文件>")
+
+    # ========== 文本处理 ==========
+    elif cmd == "head":
+        n = 10
+        if args and args[0].isdigit():
+            n = int(args.pop(0))
+        if args:
+            print(''.join(open(args[0]).readlines()[:n]))
+        else:
+            
+            print(''.join(_sys_stdin.stdin.readlines()[:n]))
+
+    elif cmd == "tail":
+        n = 10
+        if args and args[0].isdigit():
+            n = int(args.pop(0))
+        if args:
+            lines = open(args[0]).readlines()
+            print(''.join(lines[-n:]))
+        else:
+            
+            lines = _sys_stdin.stdin.readlines()
+            print(''.join(lines[-n:]))
+
+    # ========== 编码工具 ==========
+    elif cmd == "hex":
+        if args:
+            print(' '.join(args).encode().hex())
+        else:
+            print("用法: hex <文本>")
+
+    elif cmd == "unhex":
+        if args:
+            print(bytes.fromhex(' '.join(args)).decode())
+        else:
+            print("用法: unhex <十六进制>")
+
+    elif cmd == "rot13":
+        if args:
+            text = ' '.join(args)
+            print(text.encode('rot13').decode('rot13'))
+        else:
+            print("用法: rot13 <文本>")
+
+    elif cmd == "base32":
+        if args:
+            import base64
+            print(base64.b32encode(' '.join(args).encode()).decode())
+        else:
+            print("用法: base32 <文本>")
+
+    elif cmd == "binary":
+        if args:
+            print(' '.join(format(ord(c),'08b') for c in ' '.join(args)))
+        else:
+            print("用法: binary <文本>")
+
+    # ========== 时间工具 ==========
+    elif cmd == "timestamp":
+        print(int(datetime.datetime.now().timestamp()))
+
+    elif cmd == "epoch":
+        if args:
+            try:
+                ts = int(args[0])
+                print(datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S'))
+            except:
+                print("用法: epoch <时间戳>")
+
+    elif cmd == "week":
+        today = datetime.datetime.now()
+        print(f"Week {today.isocalendar()[1]}, {today.strftime('%A')}")
+
+    elif cmd == "month":
+        import calendar
+        print(calendar.month(datetime.datetime.now().year, datetime.datetime.now().month))
+
+    elif cmd == "datediff":
+        if len(args) >= 2:
+            try:
+                d1 = datetime.datetime.strptime(args[0], '%Y-%m-%d')
+                d2 = datetime.datetime.strptime(args[1], '%Y-%m-%d')
+                print(f"相差: {(d2-d1).days} 天")
+            except:
+                print("用法: datediff 2026-01-01 2026-12-31")
+
+    elif cmd == "date-add":
+        if len(args) >= 2:
+            try:
+                delta = datetime.timedelta(days=int(args[0]))
+                print((datetime.datetime.now() + delta).strftime("%Y-%m-%d"))
+            except:
+                print("用法: date-add 7 days")
+        else:
+            print("用法: date-add 7 days")
+
+    # ========== 数学工具 ==========
+    elif cmd == "prime":
+        if args:
+            n = int(args[0])
+            p = [i for i in range(2,n+1) if all(i%j for j in range(2,int(i**0.5)+1))]
+            print(f"1-{n}: {len(p)} primes")
+        else:
+            print("用法: prime <数字>")
+
+    elif cmd == "fibonacci":
+        if args:
+            n = int(args[0])
+            f = [0,1]
+            for _ in range(n-2): f.append(f[-1]+f[-2])
+            print(', '.join(map(str, f)))
+        else:
+            print("用法: fibonacci <数量>")
+
+    elif cmd == "palindrome":
+        if args:
+            t = ' '.join(args)
+            print(f"'{t}' is {'palindrome' if t==t[::-1] else 'not palindrome'}")
+        else:
+            print("用法: palindrome <文本>")
+
+    elif cmd == "reverse":
+        if args:
+            print(' '.join(args)[::-1])
+        else:
+            print("用法: reverse <文本>")
+
+    elif cmd == "length":
+        if args:
+            t = ' '.join(args)
+            print(f"{len(t)} chars, {len(t.split())} words")
+        else:
+            print("用法: length <文本>")
+
+    # ========== 密码工具 ==========
+    elif cmd == "strongpass":
+        l = int(args[0]) if args and args[0].isdigit() else 20
+        p = ''.join(secrets.choice(string.ascii_letters+string.digits+string.punctuation) for _ in range(l))
+        print(f"🔐 {p}")
+        subprocess.run(['pbcopy'], input=p.encode())
+
+    elif cmd == "pin":
+        l = int(args[0]) if args and args[0].isdigit() else 6
+        print(f"🔢 {''.join(secrets.choice(string.digits) for _ in range(l))}")
+
+    elif cmd == "uuid":
+        print(f"🔑 {uuid.uuid4()}")
+
+    # ========== 包管理 ==========
+    elif cmd == "upgrades":
+        print("🔄 可更新的包:")
+        os.system('pip list -o 2>/dev/null | head -20')
+
+    elif cmd == "brew-outdated":
+        os.system('brew outdated 2>/dev/null | head -20 || echo "需要 Homebrew"')
+
+    # ========== Cron 工具 ==========
+    elif cmd == "cronlist":
+        os.system('crontab -l 2>/dev/null || echo "无定时任务"')
+
+    elif cmd == "services":
+        os.system('launchctl list 2>/dev/null | head -30')
+
+    # ========== 系统管理 ==========
+    elif cmd == "killall":
+        if args:
+            os.system(f'pkill -f "{args[0]}" && echo "已终止 {args[0]}"')
+        else:
+            print("用法: killall <进程名>")
+
+    elif cmd == "boot":
+        import subprocess
+        result = subprocess.run(['sysctl', '-n', 'kern.boottime'], capture_output=True, text=True)
+        print(result.stdout.strip())
+
+    elif cmd == "envcheck":
+        print(f"Python: {sys.version.split()[0]}")
+        os.system('node --version 2>/dev/null')
+        os.system('git --version 2>/dev/null')
+
+    elif cmd == "platform":
+        print(f"系统: {platform.system()}")
+        print(f"版本: {platform.version()}")
+
+    elif cmd == "syspath":
+        print("\n".join(sys.path))
+
+    elif cmd == "tz":
+        print(f"时区: Asia/Shanghai (GMT+8)")
+
+    # ========== 加密工具 ==========
+    elif cmd == "jwt-decode":
+        if args:
+            try:
+                parts = args[0].split('.')
+                if len(parts) == 3:
+                    payload = json.loads(base64.b64decode(parts[1]+'==').decode())
+                    print(json.dumps(payload, indent=2))
+            except:
+                print("用法: jwt-decode <JWT>")
+        else:
+            print("用法: jwt-decode <JWT>")
+
+    elif cmd == "hmac":
+        if len(args) >= 2:
+            import hmac as _hmac, hashlib
+            print(_hmac.new(args[0].encode(), args[1].encode(), hashlib.sha256).hexdigest())
+        else:
+            print("用法: hmac <key> <message>")
+
+    elif cmd == "ssl":
+        if args:
+            os.system(f'echo | openssl s_client -connect {args[0]} 2>/dev/null | head -10 || echo "用法: ssl <域名>"')
+        else:
+            print("用法: ssl <域名>")
+
+    # ========== Todo 列表 ==========
+    elif cmd == "todo":
+        print("📝 Todo List")
+        try:
+            todos = open('/tmp/devtools_todo.txt').read().strip()
+            for i, t in enumerate(todos.splitlines(), 1):
+                print(f"  {i}. {t}")
+        except:
+            print("暂无待办 | 用法: devtools addtodo <事项>")
+
+    elif cmd == "addtodo":
+        if args:
+            with open('/tmp/devtools_todo.txt', 'a') as f:
+                f.write(' '.join(args) + '\n')
+            print("✅ 已添加: " + ' '.join(args))
+
+    elif cmd == "done":
+        if args:
+            try:
+                todos = open('/tmp/devtools_todo.txt').read().strip().splitlines()
+                idx = int(args[0]) - 1
+                if 0 <= idx < len(todos):
+                    done = todos.pop(idx)
+                    open('/tmp/devtools_todo.txt', 'w').write('\n'.join(todos))
+                    print("✅ 完成: " + done)
+            except:
+                print("用法: done <序号>")
+
+    # ========== 杂项 ==========
+    elif cmd == "ports":
+        print("📡 端口扫描 (常用端口):")
+        for p in [21,22,25,53,80,443,3306,5432,6379,8080]:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.settimeout(0.5)
+            result = sock.connect_ex(('localhost', p))
+            if result == 0:
+                print(f"  {p}: OPEN")
+            sock.close()
+
+    elif cmd == "ascii-table":
+        for i in range(33,127,16):
+            print(' '.join(chr(j) for j in range(i,min(i+16,127))))
 
     elif cmd == "emoji":
-        if not args:
-            emojis = {
-                'smile': '😄', 'laugh': '😂', 'love': '❤️', 
-                'fire': '🔥', 'star': '⭐', 'rocket': '🚀',
-                'check': '✅', 'x': '❌', 'warning': '⚠️',
-                'info': 'ℹ️', 'clock': '⏰', 'calendar': '📅'
-            }
-            for k, v in emojis.items():
-                print(f"  {k}: {v}")
-        else:
-            keyword = args[0].lower()
-            matches = {
-                'thumbsup': '👍', 'thumbsdown': '👎', 'ok': '👌',
-                'wave': '👋', 'pray': '🙏', 'clap': '👏',
-                '100': '💯', 'cool': '😎', 'thinking': '🤔'
-            }
-            print(matches.get(keyword, f"(未找到: {keyword})"))
+        print("🚀 💡 🔥 ⭐ ✨ 🎯 💪 🛠️ 📦 🖥️ 🌐 📝 ✅ ❌ ⚠️")
 
-    elif cmd == "color":
-        if not args:
-            print("用法: devtools color <#RRGGBB 或 颜色名>")
-            print("示例: devtools color #ff0000")
-            return
-        color = args[0]
-        if color.startswith('#'):
-            r, g, b = int(color[1:3], 16), int(color[3:5], 16), int(color[5:7], 16)
-            print(f"RGB: ({r}, {g}, {b})")
-            # 简单判断亮暗
-            luminance = (0.299*r + 0.587*g + 0.114*b) / 255
-            print(f"亮度: {'亮色' if luminance > 0.5 else '暗色'}")
+    elif cmd == "colors":
+        for i in range(16):
+            print(f"\033[4{i}m {i:2} \033[0m", end=' ')
+        print()
 
-    elif cmd == "env":
+    elif cmd == "anagram":
         if args:
-            key = args[0]
-            print(os.environ.get(key, "(未设置)"))
+            import itertools
+            w = args[0].upper()
+            print(', '.join(set(''.join(p) for p in itertools.permutations(w)))[:100])
         else:
-            for k, v in sorted(os.environ.items()):
-                print(f"  {k}={v}")
+            print("用法: anagram <单词>")
 
-    elif cmd == "syslog":
-        count = int(args[0]) if args and args[0].isdigit() else 20
-        result = subprocess.run(['log', 'show', '--predicate', 'process == "kernel"', '--last', '1h', '-limit', str(count)],
-                              capture_output=True, text=True)
-        print(result.stdout[-2000:] if len(result.stdout) > 2000 else result.stdout)
+    elif cmd == "palindromes":
+        print(', '.join(["level","radar","civic","refer","rotor"]))
 
-    elif cmd == "process":
-        if not args:
-            print("用法: devtools process <进程名>")
-            return
-        name = args[0]
-        result = subprocess.run(['pgrep', '-a', name], capture_output=True, text=True)
-        print(result.stdout or f"❌ 未找到进程: {name}")
-
-    elif cmd == "killport":
-        if not args:
-            print("用法: devtools killport <端口>")
-            return
-        port = args[0]
-        result = subprocess.run(['lsof', '-ti', f':{port}'], capture_output=True, text=True)
-        if result.stdout:
-            pids = result.stdout.strip().split('\n')
-            for pid in pids:
-                subprocess.run(['kill', pid])
-            print(f"✅ 已终止端口 {port} 上的进程")
+    elif cmd == "spell":
+        if args:
+            w = ' '.join(args)
+            print(f"✏️ {w} ({len(w)} letters)")
         else:
-            print(f"❌ 端口 {port} 未被占用")
+            print("用法: spell <单词>")
+
+    elif cmd == "whois":
+        if args:
+            os.system(f'whois {args[0]} 2>/dev/null | head -15 || echo "用法: whois <域名>"')
+        else:
+            print("用法: whois <域名>")
+
+    elif cmd == "dns-records":
+        if args:
+            for t in ['A', 'MX', 'NS']:
+                os.system(f'dig +short {args[0]} {t} 2>/dev/null | head -1')
+        else:
+            print("用法: dns-records <域名>")
+
+    elif cmd == "subnet":
+        if len(args) >= 2:
+            import ipaddress
+            try:
+                n = ipaddress.ip_network(args[0]+'/'+args[1], strict=False)
+                print(f"网络: {n.network_address}, 主机: {n.num_addresses-2}")
+            except:
+                print("用法: subnet <IP> <CIDR>")
+        else:
+            print("用法: subnet <IP> <CIDR>")
 
     else:
-        print(f"❌ 未知命令: {cmd}")
+        print("❌ 未知命令: " + cmd)
         print("💡 输入 'devtools' 查看所有命令")
 
 if __name__ == "__main__":
